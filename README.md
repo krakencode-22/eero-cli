@@ -38,6 +38,8 @@ Amazon Login note: eero's web sign-in at `account.eero.com` works for account/su
 
 The `web` commands are intentionally separate from device-management commands. `web open` helps complete Amazon/web login in a browser, and `web account` can validate a copied `account.eero.com` Cookie header or `EERO_WEB_COOKIE`; it does not store Amazon cookies and does not convert them into mobile API access.
 
+See `AUTH_RESEARCH.md` for the current reverse-engineering findings and the boundary between web account access and mobile API management.
+
 ### Devices
 
 ```bash

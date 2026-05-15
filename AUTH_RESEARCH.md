@@ -1,0 +1,28 @@
+# Eero auth research notes
+
+This CLI now treats eero authentication as two separate flows:
+
+- Mobile API auth for device/profile/guest management at `https://api-user.e2ro.com`
+- Web account auth for Amazon/account/subscription pages at `https://account.eero.com`
+
+## Confirmed locally
+
+- Amazon Login successfully authenticates the browser to `https://account.eero.com/`.
+- The authenticated web account page shows the account email and network name.
+- The eero web `session` cookie is `HttpOnly`, so page JavaScript cannot read it.
+- The readable browser cookies are not enough to authenticate the CLI to `account.eero.com`.
+- A same-origin browser fetch to `https://account.eero.com/` returns the authenticated account page.
+- Obvious JSON-like web routes such as `/api/account`, `/account`, `/me`, `/user`, and `/networks` returned 404 HTML pages.
+- The authenticated web context could not fetch `https://api-user.e2ro.com/2.2/account` or network device endpoints from the browser.
+- A web account session token observed during research was rejected by the mobile API as `error.session.invalid`.
+
+## Working CLI support
+
+- `eero-cli login` keeps the legacy email/phone verification-code flow.
+- `eero-cli login import-token [token]` validates and saves an existing mobile API session token.
+- `eero-cli web open` opens the web account login page for Amazon/web sign-in.
+- `eero-cli web account` validates a supplied `account.eero.com` Cookie header and prints the web account/network details.
+
+## Boundary
+
+The web account session is useful for proving Amazon/web login and reading the limited account page, but it is not currently evidence of device-management access. Device commands still require a valid mobile API `s` session token.
