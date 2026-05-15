@@ -18,6 +18,8 @@ This CLI now treats eero authentication as two separate flows:
 - In the official iOS app via iPhone Mirroring, the Amazon Login flow accepts the account email, offers passkey sign-in, and then requires local OS password/biometric approval before the app can complete login.
 - After owner approval, the official iOS app reached the logged-in network home screen.
 - The Mac CLI still reported `Status: Not logged in` afterward, confirming the iOS app session is not automatically available to the local CLI config.
+- In the logged-in iOS app, `Settings > User permissions` shows an invite-admin flow for adding additional network admins.
+- `Settings > Account settings` shows the Amazon-linked identity but did not expose an obvious control for adding legacy email/phone credentials to the owner account.
 
 ## Working CLI support
 
@@ -33,3 +35,5 @@ The web account session is useful for proving Amazon/web login and reading the l
 ## Next live verification step
 
 After owner approval in the official eero app, retry CLI auth checks and look for a safe way to obtain or validate a mobile API session token without storing Amazon/web cookies.
+
+The most practical non-invasive workaround is to use `Settings > User permissions` in the official app to invite a separate admin account that is not Amazon-login-only, then run the CLI's normal email/phone verification flow or `login import-token` for that admin.
