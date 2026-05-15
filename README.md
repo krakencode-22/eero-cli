@@ -30,9 +30,13 @@ eero-cli login                       # Authenticate with email/phone + verificat
 eero-cli login import-token [token]  # Import an existing mobile API session token
 eero-cli logout                      # Clear saved token
 eero-cli status                      # Show authentication status
+eero-cli web open                    # Open account.eero.com for Amazon/web login
+eero-cli web account                 # Validate an account.eero.com web session cookie
 ```
 
 Amazon Login note: eero's web sign-in at `account.eero.com` works for account/subscription management, but its browser session cookie is not the same as the mobile API `s` session token used by device-management endpoints at `api-user.e2ro.com`. If your account was permanently switched to Amazon Login, the legacy email/phone code flow may return `error.login.unknown`; use a separate non-Amazon admin login if available, or import a valid mobile API token with `login import-token`.
+
+The `web` commands are intentionally separate from device-management commands. `web open` helps complete Amazon/web login in a browser, and `web account` can validate a copied `account.eero.com` Cookie header or `EERO_WEB_COOKIE`; it does not store Amazon cookies and does not convert them into mobile API access.
 
 ### Devices
 

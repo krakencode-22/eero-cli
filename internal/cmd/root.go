@@ -156,6 +156,8 @@ Commands:
   login import-token [token] Import and validate an existing mobile API token
   logout                    Clear saved authentication
   status                    Show current authentication status
+  web open                  Open account.eero.com in the browser
+  web account [--cookie <cookie>] Validate an account.eero.com web session
 
   devices [options]           List all devices
     --profile <name|id>       Filter by profile name or ID

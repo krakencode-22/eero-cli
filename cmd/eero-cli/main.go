@@ -51,6 +51,9 @@ func run() error {
 	case "status":
 		return app.Status()
 
+	case "web":
+		return app.Web(subArgs)
+
 	case "devices":
 		return app.Devices(subArgs)
 
