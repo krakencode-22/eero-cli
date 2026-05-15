@@ -35,6 +35,36 @@ func TestLoginUnknownMentionsAmazonLogin(t *testing.T) {
 	}
 }
 
+func TestRequestLoginCode(t *testing.T) {
+	var gotIdentity string
+	mock := &mockClient{
+		LoginFn: func(identity string) (*api.LoginResponse, error) {
+			gotIdentity = identity
+			return &api.LoginResponse{UserToken: "temporary-user-token"}, nil
+		},
+	}
+	app := newTestApp(mock)
+	app.Config.Token = ""
+
+	out := captureStdout(t, func() {
+		if err := app.RequestLoginCode([]string{"admin@example.com"}); err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+	})
+
+	if gotIdentity != "admin@example.com" {
+		t.Errorf("identity = %q", gotIdentity)
+	}
+	if app.Config.Token != "" {
+		t.Errorf("RequestLoginCode should not save a token, got %q", app.Config.Token)
+	}
+	for _, want := range []string{"verification code has been sent", "login verify"} {
+		if !strings.Contains(out, want) {
+			t.Errorf("output missing %q:\n%s", want, out)
+		}
+	}
+}
+
 func TestImportTokenValidatesAndSavesNetwork(t *testing.T) {
 	t.Setenv("HOME", t.TempDir())
 

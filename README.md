@@ -28,6 +28,8 @@ make install
 ```bash
 eero-cli login                       # Authenticate with email/phone + verification code
 eero-cli login import-token [token]  # Import an existing mobile API session token
+eero-cli login request-code <login>  # Request email/phone verification code only
+eero-cli login verify <login> <code> # Complete email/phone auth non-interactively
 eero-cli logout                      # Clear saved token
 eero-cli status                      # Show authentication status
 eero-cli web open                    # Open account.eero.com for Amazon/web login

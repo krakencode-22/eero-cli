@@ -154,6 +154,8 @@ Usage:
 Commands:
   login                     Authenticate with your Eero account
   login import-token [token] Import and validate an existing mobile API token
+  login request-code <login> Request email/phone verification code only
+  login verify <login> <code> Complete email/phone auth non-interactively
   logout                    Clear saved authentication
   status                    Show current authentication status
   web open                  Open account.eero.com in the browser
