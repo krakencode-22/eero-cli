@@ -15,6 +15,7 @@ This CLI now treats eero authentication as two separate flows:
 - Obvious JSON-like web routes such as `/api/account`, `/account`, `/me`, `/user`, and `/networks` returned 404 HTML pages.
 - The authenticated web context could not fetch `https://api-user.e2ro.com/2.2/account` or network device endpoints from the browser.
 - A web account session token observed during research was rejected by the mobile API as `error.session.invalid`.
+- In the official iOS app via iPhone Mirroring, the Amazon Login flow accepts the account email, offers passkey sign-in, and then requires local OS password/biometric approval before the app can complete login.
 
 ## Working CLI support
 
@@ -26,3 +27,7 @@ This CLI now treats eero authentication as two separate flows:
 ## Boundary
 
 The web account session is useful for proving Amazon/web login and reading the limited account page, but it is not currently evidence of device-management access. Device commands still require a valid mobile API `s` session token.
+
+## Next live verification step
+
+Have the account owner complete the iOS passkey/password approval in the official eero app. Once the app reaches the logged-in network screen, retry CLI auth checks and look for a safe way to obtain or validate a mobile API session token without storing Amazon/web cookies.
