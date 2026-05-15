@@ -33,7 +33,7 @@ func (a *App) Login(args ...string) error {
 	loginResp, err := a.Client.Login(identity)
 	if err != nil {
 		if api.IsAPIError(err, "error.login.unknown") {
-			return fmt.Errorf("login failed: %w\n\nThis account was not recognized by the legacy email/phone code flow. If this eero account was switched to Amazon Login, eero disables the previous eero credentials for that account. This CLI cannot exchange Amazon web login cookies for a mobile API session token. Use a non-Amazon admin login if available, or run 'eero-cli login import-token' with a valid mobile API token obtained outside this CLI", err)
+			return fmt.Errorf("login failed: %w\n\nThis account was not recognized by the legacy email/phone code flow. If this eero account was switched to Amazon Login, eero disables the previous eero credentials for that account. This CLI cannot exchange Amazon web login cookies for a mobile API session token. Prefer a current-account mobile API token obtained through an authorized path and import it with 'eero-cli login import-token'. A separate reachable admin identity is only a fallback demonstration path if you explicitly choose it", err)
 		}
 		return fmt.Errorf("login failed: %w", err)
 	}
@@ -67,7 +67,7 @@ func (a *App) RequestLoginCode(args []string) error {
 	fmt.Println("Requesting verification code...")
 	if _, err := a.Client.Login(identity); err != nil {
 		if api.IsAPIError(err, "error.login.unknown") {
-			return fmt.Errorf("login failed: %w\n\nThis account was not recognized by the legacy email/phone code flow. If this eero account was switched to Amazon Login, eero disables the previous eero credentials for that account. This CLI cannot exchange Amazon web login cookies for a mobile API session token. Use a non-Amazon admin login if available, or run 'eero-cli login import-token' with a valid mobile API token obtained outside this CLI", err)
+			return fmt.Errorf("login failed: %w\n\nThis account was not recognized by the legacy email/phone code flow. If this eero account was switched to Amazon Login, eero disables the previous eero credentials for that account. This CLI cannot exchange Amazon web login cookies for a mobile API session token. Prefer a current-account mobile API token obtained through an authorized path and import it with 'eero-cli login import-token'. A separate reachable admin identity is only a fallback demonstration path if you explicitly choose it", err)
 		}
 		return fmt.Errorf("login failed: %w", err)
 	}

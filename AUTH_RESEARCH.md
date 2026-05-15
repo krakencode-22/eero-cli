@@ -36,4 +36,12 @@ The web account session is useful for proving Amazon/web login and reading the l
 
 After owner approval in the official eero app, retry CLI auth checks and look for a safe way to obtain or validate a mobile API session token without storing Amazon/web cookies.
 
-The most practical non-invasive workaround is to use `Settings > User permissions` in the official app to invite a separate admin account that is not Amazon-login-only, then run the CLI's normal email/phone verification flow or `login import-token` for that admin.
+The preferred path is still current-account authentication: either the legacy email/phone verification flow succeeds for that account, or a valid current-account mobile API token is obtained through an authorized path and imported with `login import-token`.
+
+Inviting a separate reachable admin identity can demonstrate that the CLI works against the mobile API, but it should be treated as an explicit fallback rather than the primary Amazon Login solution.
+
+## Capture validation notes
+
+Existing source and community clients corroborate `https://api-user.e2ro.com` as the unofficial mobile API endpoint, but they do not prove the exact Amazon Login handoff used by the current official app. To observe that handoff directly, use a physical iPhone/iPad with an HTTPS proxy such as Charles, Proxyman, or mitmproxy, or obtain a vendor-provided simulator-compatible eero `.app`. A normal App Store device `.ipa` is not enough for iOS Simulator.
+
+If certificate pinning prevents decrypted capture, do not bypass it. Host-level DNS/SNI/timing evidence can still confirm whether the app touches `api-user.e2ro.com` after Amazon Login, but it cannot reveal exact JSON payloads or reusable session cookies.
