@@ -15,35 +15,35 @@ import (
 // Each method checks for a corresponding function field; if nil, it panics
 // to surface unexpected calls during tests.
 type mockClient struct {
-	LoginFn                 func(identity string) (*api.LoginResponse, error)
-	LoginVerifyFn           func(userToken, code string) error
-	ValidateTokenFn         func() bool
-	SetTokenFn              func(token string)
-	GetAccountFn            func() (*api.Account, error)
-	GetDevicesFn            func(networkID string) ([]api.Device, error)
-	GetDeviceRawFn          func(networkID, deviceID string) (json.RawMessage, error)
-	UpdateDeviceFn          func(networkID, deviceID string, updates map[string]interface{}) error
-	PauseDeviceFn           func(networkID, deviceID string, pause bool) error
-	BlockDeviceFn           func(networkID, deviceID string, block bool) error
-	SetDeviceNicknameFn     func(networkID, deviceID, nickname string) error
-	GetProfilesFn           func(networkID string) ([]api.Profile, error)
-	GetProfileDetailsFn     func(networkID, profileID string) (*api.ProfileDetails, error)
-	GetProfileRawFn         func(networkID, profileID string) (json.RawMessage, error)
-	UpdateProfileFn         func(networkID, profileID string, updates map[string]interface{}) error
-	SetProfileDevicesFn     func(networkID, profileID string, deviceURLs []string) error
-	PauseProfileFn          func(networkID, profileID string, pause bool) error
-	GetEerosFn              func(networkID string) ([]api.Eero, error)
-	GetEeroRawFn            func(eeroID string) (json.RawMessage, error)
-	RebootEeroFn            func(eeroID string) error
-	GetGuestNetworkFn       func(networkID string) (*api.GuestNetwork, error)
-	UpdateGuestNetworkFn    func(networkID string, updates map[string]interface{}) error
-	EnableGuestNetworkFn    func(networkID string, enable bool) error
+	LoginFn                   func(identity string) (*api.LoginResponse, error)
+	LoginVerifyFn             func(userToken, code string) error
+	ValidateTokenFn           func() bool
+	SetTokenFn                func(token string)
+	GetAccountFn              func() (*api.Account, error)
+	GetDevicesFn              func(networkID string) ([]api.Device, error)
+	GetDeviceRawFn            func(networkID, deviceID string) (json.RawMessage, error)
+	UpdateDeviceFn            func(networkID, deviceID string, updates map[string]interface{}) error
+	PauseDeviceFn             func(networkID, deviceID string, pause bool) error
+	BlockDeviceFn             func(networkID, deviceID string, block bool) error
+	SetDeviceNicknameFn       func(networkID, deviceID, nickname string) error
+	GetProfilesFn             func(networkID string) ([]api.Profile, error)
+	GetProfileDetailsFn       func(networkID, profileID string) (*api.ProfileDetails, error)
+	GetProfileRawFn           func(networkID, profileID string) (json.RawMessage, error)
+	UpdateProfileFn           func(networkID, profileID string, updates map[string]interface{}) error
+	SetProfileDevicesFn       func(networkID, profileID string, deviceURLs []string) error
+	PauseProfileFn            func(networkID, profileID string, pause bool) error
+	GetEerosFn                func(networkID string) ([]api.Eero, error)
+	GetEeroRawFn              func(eeroID string) (json.RawMessage, error)
+	RebootEeroFn              func(eeroID string) error
+	GetGuestNetworkFn         func(networkID string) (*api.GuestNetwork, error)
+	UpdateGuestNetworkFn      func(networkID string, updates map[string]interface{}) error
+	EnableGuestNetworkFn      func(networkID string, enable bool) error
 	SetGuestNetworkPasswordFn func(networkID, password string) error
-	RebootFn                func(networkID string) error
-	GetReservationsFn       func(networkID string) ([]api.Reservation, error)
-	GetReservationRawFn     func(networkID, reservationID string) (json.RawMessage, error)
-	CreateReservationFn     func(networkID, ip, mac, description string) error
-	DeleteReservationFn     func(networkID, reservationID string) error
+	RebootFn                  func(networkID string) error
+	GetReservationsFn         func(networkID string) ([]api.Reservation, error)
+	GetReservationRawFn       func(networkID, reservationID string) (json.RawMessage, error)
+	CreateReservationFn       func(networkID, ip, mac, description string) error
+	DeleteReservationFn       func(networkID, reservationID string) error
 }
 
 func (m *mockClient) Login(identity string) (*api.LoginResponse, error) {
@@ -286,15 +286,52 @@ func captureStdout(t *testing.T, fn func()) string {
 	return string(out)
 }
 
+func captureStdoutWithInput(t *testing.T, input string, fn func()) string {
+	t.Helper()
+
+	oldStdout := os.Stdout
+	oldStdin := os.Stdin
+
+	stdoutR, stdoutW, err := os.Pipe()
+	if err != nil {
+		t.Fatalf("os.Pipe stdout: %v", err)
+	}
+
+	stdinR, stdinW, err := os.Pipe()
+	if err != nil {
+		t.Fatalf("os.Pipe stdin: %v", err)
+	}
+
+	if _, err := io.WriteString(stdinW, input); err != nil {
+		t.Fatalf("writing stdin input: %v", err)
+	}
+	stdinW.Close()
+
+	os.Stdout = stdoutW
+	os.Stdin = stdinR
+
+	fn()
+
+	stdoutW.Close()
+	os.Stdout = oldStdout
+	os.Stdin = oldStdin
+
+	out, err := io.ReadAll(stdoutR)
+	if err != nil {
+		t.Fatalf("reading captured stdout: %v", err)
+	}
+	return string(out)
+}
+
 // testDevices returns a standard set of devices for testing
 func testDevices() []api.Device {
 	return []api.Device{
 		{
-			URL:      "/2.2/networks/12345/devices/aabbccdd1122",
-			MAC:      "AA:BB:CC:DD:11:22",
-			Hostname: "laptop",
-			Nickname: "My Laptop",
-			IP:       "192.168.1.100",
+			URL:       "/2.2/networks/12345/devices/aabbccdd1122",
+			MAC:       "AA:BB:CC:DD:11:22",
+			Hostname:  "laptop",
+			Nickname:  "My Laptop",
+			IP:        "192.168.1.100",
 			Connected: true,
 			Wireless:  true,
 			Profile: &struct {

@@ -12,7 +12,7 @@ The good news: the Eero mobile app uses a REST API that has been thoroughly reve
 
 ## The unofficial API architecture
 
-All libraries communicate with `https://api-user.e2ro.com` using a consistent pattern. The API uses **cookie-based authentication** with a session token obtained through SMS or email verification—notably, **Amazon account login is not supported**.
+All libraries communicate with `https://api-user.e2ro.com` using a consistent pattern. The API uses **cookie-based authentication** with a mobile API session token obtained through SMS or email verification. Amazon Login uses a separate web/account flow and should not be assumed to produce a token that works against the mobile API.
 
 | Endpoint | Method | Purpose |
 |----------|--------|---------|
@@ -24,7 +24,7 @@ All libraries communicate with `https://api-user.e2ro.com` using a consistent pa
 | `/2.2/networks/{id}/guestnetwork` | GET/PUT | Guest network control |
 | `/2.2/networks/{id}/reboot` | POST | Reboot the network |
 
-The authentication flow requires two steps: POST a phone number or email to `/2.2/login`, receive a verification code via SMS/email, then POST that code to `/2.2/login/verify`. The resulting token persists indefinitely and should be stored locally.
+The authentication flow requires two steps: POST a phone number or email to `/2.2/login`, receive a verification code via SMS/email, then POST that code to `/2.2/login/verify`. The resulting token persists indefinitely and should be stored locally. If you already have a valid mobile API token from another trusted source, this CLI can validate and store it with `eero-cli login import-token`.
 
 ## Go: goeero provides core functionality
 
@@ -172,9 +172,9 @@ Install via HACS (Home Assistant Community Store) by adding as a custom reposito
 
 ## Authentication implementation details
 
-The critical insight: **you must use email or phone authentication, not Amazon login**. Users who set up Eero with Amazon credentials need to create a secondary admin account.
+The critical insight: the device-management API expects the mobile API session cookie (`s=...`), not the `account.eero.com` browser session. eero's official support documentation says switching to Amazon Login makes prior eero login credentials invalid and cannot be undone without deleting/recreating the account. In local testing, the Amazon web flow authenticated successfully to `account.eero.com`, but that web session token was rejected by `api-user.e2ro.com` as `error.session.invalid`.
 
-**Workaround for Amazon users**: In the Eero app, invite a new email address as a network admin. Use that email for API authentication.
+**Workarounds for Amazon users**: Use a non-Amazon admin login if one exists, invite a new email address as a network admin if the app allows it, or import a known-good mobile API token with `eero-cli login import-token`. Do not paste Amazon cookies into the mobile token field; the CLI validates the token before saving it.
 
 Session tokens persist indefinitely once verified. Store them in a file:
 

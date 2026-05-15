@@ -4,6 +4,7 @@ package api
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -80,12 +81,41 @@ func (c *Client) request(method, path string, body interface{}) ([]byte, error) 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		var apiErr APIError
 		if json.Unmarshal(respBody, &apiErr) == nil && apiErr.Meta.Error != "" {
-			return nil, fmt.Errorf("API error: %s", apiErr.Meta.Error)
+			return nil, &RequestError{
+				StatusCode: resp.StatusCode,
+				Code:       apiErr.Meta.Code,
+				APIError:   apiErr.Meta.Error,
+				Body:       string(respBody),
+			}
 		}
-		return nil, fmt.Errorf("API error (status %d): %s", resp.StatusCode, string(respBody))
+		return nil, &RequestError{
+			StatusCode: resp.StatusCode,
+			Body:       string(respBody),
+		}
 	}
 
 	return respBody, nil
+}
+
+// RequestError captures structured errors returned by the Eero API.
+type RequestError struct {
+	StatusCode int
+	Code       int
+	APIError   string
+	Body       string
+}
+
+func (e *RequestError) Error() string {
+	if e.APIError != "" {
+		return fmt.Sprintf("API error: %s", e.APIError)
+	}
+	return fmt.Sprintf("API error (status %d): %s", e.StatusCode, e.Body)
+}
+
+// IsAPIError reports whether err wraps an Eero API error with the given code.
+func IsAPIError(err error, code string) bool {
+	var reqErr *RequestError
+	return errors.As(err, &reqErr) && reqErr.APIError == code
 }
 
 // APIError represents an error response from the Eero API
@@ -534,11 +564,11 @@ type Eero struct {
 	Resources struct {
 		Reboot string `json:"reboot"`
 	} `json:"resources"`
-	MeshQualityBars         int  `json:"mesh_quality_bars"`
-	ConnectedClientsCount   int  `json:"connected_clients_count"`
-	HeartbeatOK             bool `json:"heartbeat_ok"`
-	IsPrimaryNode           bool `json:"is_primary_node"`
-	ConnectionType          string `json:"connection_type"`
+	MeshQualityBars       int    `json:"mesh_quality_bars"`
+	ConnectedClientsCount int    `json:"connected_clients_count"`
+	HeartbeatOK           bool   `json:"heartbeat_ok"`
+	IsPrimaryNode         bool   `json:"is_primary_node"`
+	ConnectionType        string `json:"connection_type"`
 }
 
 // GetEeros returns all eero nodes on the network

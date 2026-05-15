@@ -2,13 +2,23 @@ package cmd
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/dorin/eero-cli/internal/api"
 	"github.com/dorin/eero-cli/internal/config"
 )
 
 // Login handles the login command
-func (a *App) Login() error {
+func (a *App) Login(args ...string) error {
+	if len(args) > 0 {
+		switch args[0] {
+		case "import-token":
+			return a.ImportToken(args[1:])
+		default:
+			return fmt.Errorf("unknown login subcommand: %s", args[0])
+		}
+	}
+
 	identity := Prompt("Enter your email or phone number: ")
 	if identity == "" {
 		return fmt.Errorf("email or phone number is required")
@@ -18,11 +28,14 @@ func (a *App) Login() error {
 
 	loginResp, err := a.Client.Login(identity)
 	if err != nil {
+		if api.IsAPIError(err, "error.login.unknown") {
+			return fmt.Errorf("login failed: %w\n\nThis account was not recognized by the legacy email/phone code flow. If this eero account was switched to Amazon Login, eero disables the previous eero credentials for that account. This CLI cannot exchange Amazon web login cookies for a mobile API session token. Use a non-Amazon admin login if available, or run 'eero-cli login import-token' with a valid mobile API token obtained outside this CLI", err)
+		}
 		return fmt.Errorf("login failed: %w", err)
 	}
 
 	fmt.Println("A verification code has been sent to your email/phone.")
-	code := Prompt("Enter verification code: ")
+	code := PromptSecret("Enter verification code: ")
 	if code == "" {
 		return fmt.Errorf("verification code is required")
 	}
@@ -58,6 +71,46 @@ func (a *App) Login() error {
 	}
 
 	fmt.Println("Login successful! Token saved.")
+	return nil
+}
+
+// ImportToken validates and saves an existing mobile API session token.
+func (a *App) ImportToken(args []string) error {
+	var token string
+	if len(args) > 0 {
+		token = strings.TrimSpace(args[0])
+	} else {
+		token = PromptSecret("Enter mobile API session token: ")
+	}
+	if token == "" {
+		return fmt.Errorf("token is required")
+	}
+
+	a.Client.SetToken(token)
+	if !a.Client.ValidateToken() {
+		return fmt.Errorf("token is invalid or expired")
+	}
+
+	a.Config.Token = token
+	account, err := a.Client.GetAccount()
+	if err != nil {
+		if err := a.Config.Save(); err != nil {
+			return fmt.Errorf("saving config: %w", err)
+		}
+		fmt.Println("Token imported! (Warning: couldn't fetch network info)")
+		return nil
+	}
+
+	if len(account.Networks.Data) > 0 {
+		a.Config.NetworkID = api.ExtractNetworkID(account.Networks.Data[0].URL)
+		fmt.Printf("Imported token for network: %s\n", account.Networks.Data[0].Name)
+	}
+
+	if err := a.Config.Save(); err != nil {
+		return fmt.Errorf("saving config: %w", err)
+	}
+
+	fmt.Println("Token imported and validated.")
 	return nil
 }
 

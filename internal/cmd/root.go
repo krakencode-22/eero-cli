@@ -9,6 +9,7 @@ import (
 
 	"github.com/dorin/eero-cli/internal/api"
 	"github.com/dorin/eero-cli/internal/config"
+	"golang.org/x/term"
 )
 
 // App holds the application state
@@ -86,9 +87,12 @@ func Prompt(message string) string {
 // PromptSecret reads a line of input without echo (for sensitive data)
 func PromptSecret(message string) string {
 	fmt.Print(message)
-	reader := bufio.NewReader(os.Stdin)
-	input, _ := reader.ReadString('\n')
-	return strings.TrimSpace(input)
+	input, err := term.ReadPassword(int(os.Stdin.Fd()))
+	fmt.Println()
+	if err != nil {
+		return ""
+	}
+	return strings.TrimSpace(string(input))
 }
 
 // Confirm asks for a yes/no confirmation
@@ -149,6 +153,7 @@ Usage:
 
 Commands:
   login                     Authenticate with your Eero account
+  login import-token [token] Import and validate an existing mobile API token
   logout                    Clear saved authentication
   status                    Show current authentication status
 

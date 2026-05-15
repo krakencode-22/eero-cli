@@ -43,7 +43,7 @@ func run() error {
 		return nil
 
 	case "login":
-		return app.Login()
+		return app.Login(subArgs...)
 
 	case "logout":
 		return app.Logout()

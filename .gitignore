@@ -27,3 +27,4 @@ vendor/
 
 # Config (contains auth tokens)
 config.json
+/eero-cli

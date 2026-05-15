@@ -600,6 +600,9 @@ func TestAPIError401(t *testing.T) {
 	if got := err.Error(); got != "API error: unauthorized" {
 		t.Errorf("error = %q, want %q", got, "API error: unauthorized")
 	}
+	if !IsAPIError(err, "unauthorized") {
+		t.Errorf("IsAPIError(err, unauthorized) = false")
+	}
 }
 
 func TestAPIError500(t *testing.T) {
